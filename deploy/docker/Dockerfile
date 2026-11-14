@@ -17,7 +17,7 @@ RUN mkdir -p /out && echo "ok" > /out/index.html
 
 # ---- runtime --------------------------------------------------------------
 # Pick the smallest base that runs your artifact (distroless, a language runtime, nginx, scratch...).
-FROM busybox:1.37 AS runtime
+FROM busybox:1.38 AS runtime
 WORKDIR /app
 COPY --from=build /out/ ./
 
