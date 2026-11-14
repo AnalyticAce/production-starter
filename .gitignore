@@ -23,3 +23,7 @@ tmp/
 *.log
 
 # Add stack-specific ignores below (see https://github.com/github/gitignore).
+
+
+# AI coding tools
+.claude/

@@ -24,10 +24,10 @@ COPY --from=build /out/ ./
 # Run as an unprivileged user (65534 = nobody).
 USER 65534:65534
 
-ENV PORT=8080
 EXPOSE 8080
+# Exec form (no shell) so it also works on shell-less bases like distroless. Keep the port in sync with CMD.
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
-  CMD wget -q --spider "http://127.0.0.1:${PORT}/" || exit 1
+  CMD ["wget", "-q", "--spider", "http://127.0.0.1:8080/"]
 
 # Replace with your app's entrypoint.
 CMD ["httpd", "-f", "-p", "8080", "-h", "/app"]
