@@ -1,0 +1,10 @@
+title = "production-starter gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Files that only ever hold placeholders"
+paths = [
+  '''\.env\.example$''',
+]

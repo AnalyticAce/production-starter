@@ -1,0 +1,34 @@
+# PR-Agent repo config, read from the default branch.
+# All options: https://github.com/The-PR-Agent/pr-agent/blob/main/pr_agent/settings/configuration.toml
+# Which tools run automatically is set in .github/workflows/ai-pr-review.yml.
+
+[config]
+# Uncomment to override PR-Agent's default model.
+# model = "gpt-6.1-sol"            # v0.50.0 default
+# fallback_models = ["gpt-6-luna"]
+ignore_pr_title = ["^\\[Auto\\]"]
+ignore_pr_authors = ["dependabot[bot]"]  # skip Dependabot bumps
+
+[pr_reviewer]
+num_max_findings = 5
+require_tests_review = true
+require_security_review = true
+require_estimate_effort_to_review = true
+require_score_review = false
+enable_review_labels_security = true
+enable_review_labels_effort = true
+extra_instructions = """\
+Report only bugs, security issues and real maintainability problems, most severe first.
+Cite file and line, and say why each issue matters in one or two sentences.
+Skip style nits a linter would catch. If the change looks fine, say so. Do not invent problems.
+"""
+
+[pr_description]
+publish_labels = false
+add_original_user_description = true
+extra_instructions = ""
+
+[pr_code_suggestions]
+focus_only_on_problems = true
+suggestions_score_threshold = 5
+extra_instructions = ""

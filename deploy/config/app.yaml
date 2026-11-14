@@ -1,0 +1,10 @@
+# Non-secret app configuration. Secrets belong in env vars (.env locally, a secret manager in prod).
+app:
+  name: production-starter
+  port: 8080
+
+logging:
+  level: info
+  format: json
+
+features: {}

@@ -1,0 +1,19 @@
+# BuildKit reads <Dockerfile>.dockerignore next to the Dockerfile.
+# Keep the build context to source only: no VCS, secrets, local deps or build output.
+.git
+.github
+.githooks
+.env
+.env.*
+!.env.example
+deploy/
+docs/
+*.md
+compose.yaml
+justfile
+dist/
+build/
+out/
+coverage/
+.cache/
+*.log

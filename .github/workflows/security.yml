@@ -1,0 +1,33 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Gitleaks (full history)
+        run: >
+          docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:v8.21.2
+          git /repo --config /repo/.gitleaks.toml --redact --verbose
+
+  vulnerabilities:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Trivy filesystem scan (deps, IaC, Dockerfile)
+        run: >
+          docker run --rm -v "$PWD:/repo" aquasec/trivy:0.57.1
+          fs /repo --scanners vuln,misconfig,secret
+          --severity HIGH,CRITICAL --exit-code 1 --ignore-unfixed

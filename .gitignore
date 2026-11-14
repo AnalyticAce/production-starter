@@ -1,0 +1,25 @@
+# Env & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Build output, caches, logs
+dist/
+build/
+out/
+coverage/
+.cache/
+tmp/
+*.log
+
+# Add stack-specific ignores below (see https://github.com/github/gitignore).

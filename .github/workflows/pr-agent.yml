@@ -1,0 +1,39 @@
+name: AI PR Review
+
+# PR-Agent: https://github.com/The-PR-Agent/pr-agent
+# Reviews every PR, and answers /review, /describe, /improve, /ask comments.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: ai-review-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  pr-agent:
+    # Skip bots and drafts; only trusted users can trigger (paid) commands via comments.
+    # Fork PRs get no secrets under `pull_request`, so they are not reviewed.
+    if: >-
+      github.event.sender.type != 'Bot' && (
+        (github.event_name == 'pull_request' && !github.event.pull_request.draft) ||
+        (github.event.issue.pull_request &&
+         contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
+      )
+    runs-on: ubuntu-latest
+    steps:
+      - uses: the-pr-agent/pr-agent@v0.50.0
+        env:
+          OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "false"
+          github_action_config.auto_improve: "false"
+          # Tool settings live in .pr_agent.toml.
