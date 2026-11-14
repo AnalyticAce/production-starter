@@ -13,8 +13,12 @@ This installs git hooks (`.githooks/`) and creates `.env` from `.env.example`.
 1. Branch from `main`: `feat/short-name`, `fix/short-name`.
 2. Commit using [Conventional Commits](https://www.conventionalcommits.org/) — the `commit-msg` hook enforces it.
 3. Run `just check` before pushing.
-4. Open a PR and add `?template=pull_request_template.md` to the compare URL to load the template (see `.github/PULL_REQUEST_TEMPLATE/`). CI, security scans and the AI review run automatically.
+4. Open a PR; the template loads automatically. Its **title** must be a Conventional Commit, since it becomes the squash commit. CI, security scans and the AI review run automatically.
 5. Squash-merge once approved and green.
+
+## Releases
+
+`release-please` keeps a release PR open on `main` with the next version and changelog, derived from commit types (`fix` → patch, `feat` → minor, `!` → major). Merge it to tag and publish the release.
 
 ## Rules
 

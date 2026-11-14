@@ -6,7 +6,7 @@
 # Uncomment to override PR-Agent's default model.
 # model = "gpt-6.1-sol"            # v0.50.0 default
 # fallback_models = ["gpt-6-luna"]
-ignore_pr_title = ["^\\[Auto\\]"]
+ignore_pr_title = ["^\\[Auto\\]", "^chore\\(main\\): release"]  # skip release-please PRs
 ignore_pr_authors = ["dependabot[bot]"]  # skip Dependabot bumps
 
 [pr_reviewer]

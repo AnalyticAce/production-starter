@@ -1,0 +1,28 @@
+name: Release
+
+# release-please keeps a release PR open with the next version and CHANGELOG.md,
+# computed from Conventional Commits. Merging it tags the version and creates a GitHub Release.
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          release-type: simple
+          # PRs opened with the default GITHUB_TOKEN don't trigger CI, so required checks never run.
+          # Set a RELEASE_PLEASE_TOKEN secret (fine-grained PAT or GitHub App token) to fix that.
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN || github.token }}

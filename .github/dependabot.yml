@@ -6,6 +6,8 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7  # let fresh releases settle; compromised versions are usually yanked fast
     groups:
       actions:
         patterns: ["*"]
@@ -14,3 +16,5 @@ updates:
     directory: /deploy/docker
     schedule:
       interval: weekly
+    cooldown:
+      default-days: 7  # let fresh releases settle; compromised versions are usually yanked fast

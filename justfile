@@ -7,6 +7,10 @@ default:
 setup:
     scripts/setup.sh
 
+# Apply GitHub repo settings and branch protection (needs gh + admin)
+repo-setup:
+    scripts/repo-setup.sh
+
 # Lint, format and secret-scan everything
 check:
     scripts/check.sh

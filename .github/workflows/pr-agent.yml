@@ -5,13 +5,11 @@ name: AI PR Review
 on:
   pull_request:
     types: [opened, reopened, synchronize, ready_for_review]
-  issue_comment:
+  # Safe here: only OWNER/MEMBER/COLLABORATOR comments run it (see `if:`), and no PR code is checked out.
+  issue_comment:  # zizmor: ignore[dangerous-triggers]
     types: [created]
 
-permissions:
-  contents: read
-  issues: write
-  pull-requests: write
+permissions: {}
 
 concurrency:
   group: ai-review-${{ github.event.pull_request.number || github.event.issue.number }}
@@ -28,8 +26,12 @@ jobs:
          contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
       )
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     steps:
-      - uses: the-pr-agent/pr-agent@v0.50.0
+      - uses: the-pr-agent/pr-agent@e673a02076ce09a4726c3d0c3cc85780e59ca52b # v0.50.0
         env:
           OPENAI_KEY: ${{ secrets.OPENAI_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
