@@ -1,5 +1,6 @@
 # Stack-agnostic checks. Add your language's linters/formatters as extra repos.
 # Bump revs with: pre-commit autoupdate
+default_stages: [pre-commit]  # file checks run on commit; commit-msg hooks opt in below
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -41,3 +42,12 @@ repos:
     rev: v1.32.0
     hooks:
       - id: zizmor
+
+  # Commit messages: Conventional Commits spec (types: build chore ci docs feat fix perf refactor revert style test).
+  # Same type list the PR title check (.github/workflows/pr-title.yml) enforces.
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v4.5.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: [--verbose]

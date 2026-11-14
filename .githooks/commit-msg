@@ -1,15 +1,8 @@
 #!/usr/bin/env sh
-# Enforces Conventional Commits: type(scope)!: subject
-msg_file="$1"
-first_line=$(head -n1 "$msg_file")
-
-case "$first_line" in
-  Merge\ *|Revert\ *|fixup!\ *|squash!\ *) exit 0 ;;
-esac
-
-pattern='^(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([a-z0-9._/-]+\))?!?: .{1,72}$'
-if ! printf '%s' "$first_line" | grep -Eq "$pattern"; then
-  echo "commit-msg: '$first_line'" >&2
-  echo "Expected Conventional Commits, e.g. 'feat(api): add health endpoint'" >&2
+# Validates the commit message with conventional-pre-commit (configured in .pre-commit-config.yaml).
+set -e
+if ! command -v pre-commit >/dev/null 2>&1; then
+  echo "pre-commit not installed. Run scripts/setup.sh (installs it with uv)." >&2
   exit 1
 fi
+exec pre-commit run --hook-stage commit-msg --commit-msg-filename "$1"
