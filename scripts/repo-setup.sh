@@ -2,11 +2,9 @@
 # Apply the GitHub settings that "Use this template" does not copy. Safe to re-run.
 # Needs: gh CLI logged in with admin rights on the repo.
 # Usage: scripts/repo-setup.sh [owner/repo]     (default: current repo)
-#        APPROVALS=0 scripts/repo-setup.sh      (solo projects: no required review)
 set -euo pipefail
 
 repo=${1:-$(gh repo view --json nameWithOwner -q .nameWithOwner)}
-approvals=${APPROVALS:-1}
 ruleset_name="default-branch-protection"
 
 echo "Configuring $repo"
@@ -28,6 +26,7 @@ gh api -X PUT "repos/$repo/actions/permissions/workflow" --silent \
   -F can_approve_pull_request_reviews=true
 echo "✓ actions token permissions"
 
+# Changes reach the default branch only through a PR (no review requirements; the API needs every field set).
 # Required checks are job names from the workflows in .github/workflows.
 ruleset=$(cat <<JSON
 {
@@ -42,11 +41,11 @@ ruleset=$(cat <<JSON
     {
       "type": "pull_request",
       "parameters": {
-        "required_approving_review_count": $approvals,
-        "dismiss_stale_reviews_on_push": true,
+        "required_approving_review_count": 0,
+        "dismiss_stale_reviews_on_push": false,
         "require_code_owner_review": false,
         "require_last_push_approval": false,
-        "required_review_thread_resolution": true
+        "required_review_thread_resolution": false
       }
     },
     {
@@ -70,8 +69,8 @@ JSON
 id=$(gh api "repos/$repo/rulesets" -q ".[] | select(.name == \"$ruleset_name\") | .id")
 if [[ -n $id ]]; then
   gh api -X PUT "repos/$repo/rulesets/$id" --silent --input - <<<"$ruleset"
-  echo "✓ ruleset updated (approvals: $approvals)"
+  echo "✓ ruleset updated"
 else
   gh api -X POST "repos/$repo/rulesets" --silent --input - <<<"$ruleset"
-  echo "✓ ruleset created (approvals: $approvals)"
+  echo "✓ ruleset created"
 fi

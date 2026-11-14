@@ -42,7 +42,7 @@ Then make it yours: replace the placeholder `build` and `runtime` stages in `dep
 
 1. Click **Use this template** on GitHub (enable it under *Settings → Template repository*).
 2. Add the `OPENAI_KEY` repository secret to enable AI review. Tune PR-Agent in `.pr_agent.toml` ([options](https://github.com/The-PR-Agent/pr-agent/blob/main/pr_agent/settings/configuration.toml)).
-3. Run `just repo-setup` (needs `gh` with admin rights): squash-only merges and a ruleset on the default branch requiring a reviewed PR and passing `lint`, `docker`, `secrets`, `vulnerabilities` and `pr-title` checks. Use `APPROVALS=0 just repo-setup` for solo projects.
+3. Run `just repo-setup` (needs `gh` with admin rights): squash-only merges and a ruleset on the default branch that blocks direct pushes (changes land only via PR) and requires the `lint`, `docker`, `secrets`, `vulnerabilities` and `pr-title` checks to pass.
 4. Add a `RELEASE_PLEASE_TOKEN` secret (fine-grained PAT with Contents, Issues and Pull requests write access). Without it, release PRs don't trigger CI and can't pass the required checks.
 5. Update `LICENSE`, this README and `deploy/config/app.yaml`.
 
