@@ -1,5 +1,7 @@
 # production-starter
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/AnalyticAce/production-starter/badge)](https://scorecard.dev/viewer/?uri=github.com/AnalyticAce/production-starter)
+
 A language-agnostic template for production-ready apps: CI, security scanning, AI PR review, git hooks, and a hardened Docker setup.
 
 ## Prerequisites
@@ -27,9 +29,10 @@ Then make it yours: replace the placeholder `build` and `runtime` stages in `dep
 
 | Path | What it does |
 |------|--------------|
-| `.github/workflows/ci.yml` | pre-commit checks, hadolint, Docker build |
+| `.github/workflows/ci.yml` | pre-commit checks, hadolint, Docker build, Trivy scan of the built image |
 | `.github/workflows/security.yml` | Gitleaks (full history) + Trivy scan, on PR and weekly |
-| `.github/workflows/pr-agent.yml` | [PR-Agent](https://github.com/The-PR-Agent/pr-agent) review on each PR, plus `/review`, `/describe`, `/improve`, `/ask` comments (needs `OPENAI_KEY` secret) |
+| `.github/workflows/pr-agent.yml` | [PR-Agent](https://github.com/The-PR-Agent/pr-agent) review on each PR, plus `/review`, `/describe`, `/improve`, `/ask` comments (needs `OPENAI_API_KEY` secret) |
+| `.github/workflows/scorecard.yml` | OpenSSF Scorecard: weekly security-practices score, shown as the README badge |
 | `.github/workflows/pr-title.yml` | Fails PRs whose title isn't a Conventional Commit (it becomes the squash commit) |
 | `.github/workflows/release.yml` | [release-please](https://github.com/googleapis/release-please): release PR → version tag, `CHANGELOG.md`, GitHub Release |
 | `.github/pull_request_template.md` | Default PR template; extra ones go in `.github/PULL_REQUEST_TEMPLATE/` (`?template=<name>.md`) |
@@ -41,14 +44,14 @@ Then make it yours: replace the placeholder `build` and `runtime` stages in `dep
 ## Using this template
 
 1. Click **Use this template** on GitHub (enable it under *Settings → Template repository*).
-2. Add the `OPENAI_KEY` repository secret to enable AI review. Tune PR-Agent in `.pr_agent.toml` ([options](https://github.com/The-PR-Agent/pr-agent/blob/main/pr_agent/settings/configuration.toml)).
+2. Add the `OPENAI_API_KEY` repository secret to enable AI review. Tune PR-Agent in `.pr_agent.toml` ([options](https://github.com/The-PR-Agent/pr-agent/blob/main/pr_agent/settings/configuration.toml)).
 3. Run `just repo-setup` (needs `gh` with admin rights): squash-only merges and a ruleset on the default branch that blocks direct pushes (changes land only via PR) and requires the `lint`, `docker`, `secrets`, `vulnerabilities` and `pr-title` checks to pass.
 4. Add a `RELEASE_PLEASE_TOKEN` secret (fine-grained PAT with Contents, Issues and Pull requests write access). Without it, release PRs don't trigger CI and can't pass the required checks.
 5. Update `LICENSE`, this README and `deploy/config/app.yaml`.
 
 ## Supply chain
 
-Actions are pinned to full commit SHAs (version in a trailing comment); Dependabot bumps both after a 7-day cooldown. `actionlint` and `zizmor` lint every workflow in pre-commit and CI.
+Actions are pinned to full commit SHAs and Docker images to digests (version kept alongside); Dependabot bumps both after a 7-day cooldown. `actionlint` and `zizmor` lint every workflow in pre-commit and CI.
 
 ## License
 
