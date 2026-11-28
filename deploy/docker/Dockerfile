@@ -5,7 +5,7 @@
 # Swap the base images and commands for your stack; keep the structure.
 
 # ---- build ----------------------------------------------------------------
-FROM alpine:3.20 AS build
+FROM alpine:3.24 AS build
 WORKDIR /src
 
 # Copy dependency manifests first and install them here, so the layer caches.
@@ -17,7 +17,7 @@ RUN mkdir -p /out && echo "ok" > /out/index.html
 
 # ---- runtime --------------------------------------------------------------
 # Pick the smallest base that runs your artifact (distroless, a language runtime, nginx, scratch...).
-FROM busybox:1.37 AS runtime
+FROM busybox:1.38 AS runtime
 WORKDIR /app
 COPY --from=build /out/ ./
 
