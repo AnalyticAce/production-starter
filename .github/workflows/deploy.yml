@@ -1,0 +1,101 @@
+name: Deploy
+
+# Build once, promote the same image:
+#   merge to main      → build, push ghcr.io/<owner>/<repo>:sha-<commit>, deploy to staging
+#   release published  → retag that image as the version, deploy to production (after your approval)
+# Releases from release-please only trigger this when RELEASE_PLEASE_TOKEN is set (see README).
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published]
+
+permissions: {}
+
+# Concurrency sits on the deploy jobs, not the workflow: every commit gets built (a release
+# may point at any of them), while deploys to one environment queue up one at a time.
+
+jobs:
+  build:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.push.outputs.image }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build and push
+        id: push
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}:sha-$GITHUB_SHA"
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          docker build -f deploy/docker/Dockerfile -t "$image" .
+          docker push "$image"
+          echo "image=$(docker inspect --format '{{index .RepoDigests 0}}' "$image")" >> "$GITHUB_OUTPUT"
+
+  staging:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: staging
+    concurrency:
+      group: deploy-staging
+      cancel-in-progress: false
+    permissions:
+      contents: read
+    steps:
+      # Builds can finish out of order; never let an older commit overwrite a newer deploy.
+      - name: Skip if main has moved on
+        id: fresh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_REF_NAME" --jq .sha)
+          if [ "$head" = "$GITHUB_SHA" ]; then
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping: $GITHUB_REF_NAME is now at $head, its own run deploys that"
+          fi
+      - name: Deploy
+        if: steps.fresh.outputs.latest == 'true'
+        env:
+          IMAGE: ${{ needs.build.outputs.image }}
+        # Placeholder: replace with your platform's deploy command (kubectl, flyctl, ssh + compose, ...).
+        run: echo "::notice::Deploying $IMAGE to staging"
+
+  production:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    environment: production
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+    permissions:
+      packages: write
+    steps:
+      - name: Promote staging image to the release version
+        id: promote
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # The tagged commit was built when it merged to main; nothing is rebuilt here.
+        # release-please publishes right after that merge, so wait for its build to finish pushing.
+        run: |
+          repo="ghcr.io/${GITHUB_REPOSITORY,,}"
+          echo "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          for _ in $(seq 30); do
+            docker buildx imagetools inspect "$repo:sha-$GITHUB_SHA" >/dev/null 2>&1 && break
+            echo "Waiting for $repo:sha-$GITHUB_SHA ..."; sleep 20
+          done
+          docker buildx imagetools create -t "$repo:$GITHUB_REF_NAME" "$repo:sha-$GITHUB_SHA"
+          digest=$(docker buildx imagetools inspect "$repo:$GITHUB_REF_NAME" --format '{{.Manifest.Digest}}')
+          echo "image=$repo@$digest" >> "$GITHUB_OUTPUT"
+      - name: Deploy
+        env:
+          IMAGE: ${{ steps.promote.outputs.image }}
+        # Placeholder: same command as staging, pointed at production.
+        run: echo "::notice::Deploying $IMAGE to production"

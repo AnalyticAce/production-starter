@@ -74,3 +74,29 @@ else
   gh api -X POST "repos/$repo/rulesets" --silent --input - <<<"$ruleset"
   echo "✓ ruleset created"
 fi
+
+# Deploy environments (used by .github/workflows/deploy.yml):
+#   staging    → only the default branch can deploy
+#   production → only v* tags can deploy, and each deploy waits for your approval
+me=$(gh api user -q .id)
+default_branch=$(gh api "repos/$repo" -q .default_branch)
+
+gh api -X PUT "repos/$repo/environments/staging" --silent --input - <<'JSON'
+{ "deployment_branch_policy": { "protected_branches": false, "custom_branch_policies": true } }
+JSON
+gh api -X PUT "repos/$repo/environments/production" --silent --input - <<JSON
+{
+  "reviewers": [{ "type": "User", "id": $me }],
+  "prevent_self_review": false,
+  "deployment_branch_policy": { "protected_branches": false, "custom_branch_policies": true }
+}
+JSON
+
+allow_ref() { # environment, ref pattern, branch|tag
+  if ! gh api "repos/$repo/environments/$1/deployment-branch-policies" -q '.branch_policies[].name' | grep -qxF "$2"; then
+    gh api -X POST "repos/$repo/environments/$1/deployment-branch-policies" --silent -f name="$2" -f type="$3"
+  fi
+}
+allow_ref staging "$default_branch" branch
+allow_ref production 'v*' tag
+echo "✓ environments: staging ($default_branch), production (v* tags, approval required)"
