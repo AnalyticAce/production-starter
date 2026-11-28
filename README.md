@@ -23,7 +23,7 @@ just up            # build and run on http://localhost:8080
 just check         # lint, format, secret-scan
 ```
 
-Then make it yours: replace the placeholder `build` and `runtime` stages in `deploy/docker/Dockerfile`, add your language's hooks to `.pre-commit-config.yaml`, a test job to `ci.yml`, and your package ecosystem to `dependabot.yml`.
+Then make it yours: replace the placeholder `build` and `runtime` stages in `deploy/docker/Dockerfile`, add your language's hooks to `.pre-commit-config.yaml`, a test job to `ci.yml`, and Renovate picks up your package manager automatically.
 
 ## What's inside
 
@@ -35,6 +35,7 @@ Then make it yours: replace the placeholder `build` and `runtime` stages in `dep
 | `.github/workflows/scorecard.yml` | OpenSSF Scorecard: weekly security-practices score, shown as the README badge |
 | `.github/workflows/pr-title.yml` | Fails PRs whose title isn't a Conventional Commit (it becomes the squash commit) |
 | `.github/workflows/release.yml` | [release-please](https://github.com/googleapis/release-please): release PR → version tag, `CHANGELOG.md`, GitHub Release |
+| `renovate.json` | [Renovate](https://docs.renovatebot.com/): lists every update on the **Dependency Dashboard** issue; a PR opens only when you tick its box |
 | `.github/pull_request_template.md` | Default PR template; extra ones go in `.github/PULL_REQUEST_TEMPLATE/` (`?template=<name>.md`) |
 | `.githooks/` | Thin shims into pre-commit: `pre-commit` runs the file checks, `commit-msg` validates messages with [conventional-pre-commit](https://github.com/compilerla/conventional-pre-commit) |
 | `deploy/` | Dockerfile, build excludes, runtime config — see [deploy/README.md](deploy/README.md) |
@@ -47,11 +48,12 @@ Then make it yours: replace the placeholder `build` and `runtime` stages in `dep
 2. Add the `OPENAI_API_KEY` repository secret to enable AI review. Tune PR-Agent in `.pr_agent.toml` ([options](https://github.com/The-PR-Agent/pr-agent/blob/main/pr_agent/settings/configuration.toml)).
 3. Run `just repo-setup` (needs `gh` with admin rights): squash-only merges and a ruleset on the default branch that blocks direct pushes (changes land only via PR) and requires the `lint`, `docker`, `secrets`, `vulnerabilities` and `pr-title` checks to pass.
 4. Add a `RELEASE_PLEASE_TOKEN` secret (fine-grained PAT with Contents, Issues and Pull requests write access). Without it, release PRs don't trigger CI and can't pass the required checks.
-5. Update `LICENSE`, this README and `deploy/config/app.yaml`.
+5. Install the [Renovate app](https://github.com/apps/renovate) on the repo (Renovate Only, Scan and Alert).
+6. Update `LICENSE`, this README and `deploy/config/app.yaml`.
 
 ## Supply chain
 
-Actions are pinned to full commit SHAs and Docker images to digests (version kept alongside); Dependabot bumps both after a 7-day cooldown. `actionlint` and `zizmor` lint every workflow in pre-commit and CI.
+Actions are pinned to full commit SHAs and Docker images to digests (version kept alongside); Renovate keeps both current, including the `docker run` image refs in workflows. `actionlint` and `zizmor` lint every workflow in pre-commit and CI.
 
 ## License
 

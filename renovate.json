@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "dependencyDashboardApproval": true,
+  "pre-commit": { "enabled": true },
+  "customManagers": [
+    {
+      "description": "Digest-pinned images run via `docker run` in workflows (e.g. Trivy, Gitleaks)",
+      "customType": "regex",
+      "managerFilePatterns": ["/^\\.github/workflows/.+\\.ya?ml$/"],
+      "matchStrings": ["\\s(?<depName>[a-z0-9.-]+(?:/[a-z0-9._-]+)+):(?<currentValue>[\\w.-]+)@(?<currentDigest>sha256:[a-f0-9]{64})"],
+      "datasourceTemplate": "docker"
+    }
+  ]
+}
