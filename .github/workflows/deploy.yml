@@ -46,9 +46,23 @@ jobs:
     concurrency:
       group: deploy-staging
       cancel-in-progress: false
-    permissions: {}
+    permissions:
+      contents: read
     steps:
+      # Builds can finish out of order; never let an older commit overwrite a newer deploy.
+      - name: Skip if main has moved on
+        id: fresh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_REF_NAME" --jq .sha)
+          if [ "$head" = "$GITHUB_SHA" ]; then
+            echo "latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::Skipping: $GITHUB_REF_NAME is now at $head, its own run deploys that"
+          fi
       - name: Deploy
+        if: steps.fresh.outputs.latest == 'true'
         env:
           IMAGE: ${{ needs.build.outputs.image }}
         # Placeholder: replace with your platform's deploy command (kubectl, flyctl, ssh + compose, ...).
