@@ -5,7 +5,7 @@
 # Swap the base images and commands for your stack; keep the structure.
 
 # ---- build ----------------------------------------------------------------
-FROM alpine:3.20 AS build
+FROM alpine:3.24 AS build
 WORKDIR /src
 
 # Copy dependency manifests first and install them here, so the layer caches.
