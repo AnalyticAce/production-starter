@@ -34,20 +34,21 @@ Then make it yours: replace the placeholder `build` and `runtime` stages in `dep
 | `.github/workflows/pr-agent.yml` | [PR-Agent](https://github.com/The-PR-Agent/pr-agent) review on each PR, plus `/review`, `/describe`, `/improve`, `/ask` comments (needs `OPENAI_API_KEY` secret) |
 | `.github/workflows/scorecard.yml` | OpenSSF Scorecard: weekly security-practices score, shown as the README badge |
 | `.github/workflows/pr-title.yml` | Fails PRs whose title isn't a Conventional Commit (it becomes the squash commit) |
+| `.github/workflows/deploy.yml` | Build once, promote: merge to `main` → image pushed to GHCR and deployed to **staging**; GitHub Release → same image retagged and deployed to **production** after your approval. Deploy commands are placeholders |
 | `.github/workflows/release.yml` | [release-please](https://github.com/googleapis/release-please): release PR → version tag, `CHANGELOG.md`, GitHub Release |
 | `renovate.json` | [Renovate](https://docs.renovatebot.com/): lists every update on the **Dependency Dashboard** issue; a PR opens only when you tick its box |
 | `.github/pull_request_template.md` | Default PR template; extra ones go in `.github/PULL_REQUEST_TEMPLATE/` (`?template=<name>.md`) |
 | `.githooks/` | Thin shims into pre-commit: `pre-commit` runs the file checks, `commit-msg` validates messages with [conventional-pre-commit](https://github.com/compilerla/conventional-pre-commit) |
 | `deploy/` | Dockerfile, build excludes, runtime config — see [deploy/README.md](deploy/README.md) |
 | `docs/` | [Architecture](docs/architecture.md) and [contributing](docs/contributing.md) |
-| `scripts/` | `setup.sh`, `check.sh`, and `repo-setup.sh` (GitHub settings + branch protection) |
+| `scripts/` | `setup.sh`, `check.sh`, and `repo-setup.sh` (GitHub settings, branch protection, deploy environments) |
 
 ## Using this template
 
 1. Click **Use this template** on GitHub (enable it under *Settings → Template repository*).
 2. Add the `OPENAI_API_KEY` repository secret to enable AI review. Tune PR-Agent in `.pr_agent.toml` ([options](https://github.com/The-PR-Agent/pr-agent/blob/main/pr_agent/settings/configuration.toml)).
-3. Run `just repo-setup` (needs `gh` with admin rights): squash-only merges and a ruleset on the default branch that blocks direct pushes (changes land only via PR) and requires the `lint`, `docker`, `secrets`, `vulnerabilities` and `pr-title` checks to pass.
-4. Add a `RELEASE_PLEASE_TOKEN` secret (fine-grained PAT with Contents, Issues and Pull requests write access). Without it, release PRs don't trigger CI and can't pass the required checks.
+3. Run `just repo-setup` (needs `gh` with admin rights): squash-only merges and a ruleset on the default branch that blocks direct pushes (changes land only via PR) and requires the `lint`, `docker`, `secrets`, `vulnerabilities` and `pr-title` checks to pass. It also creates the `staging` (default branch only) and `production` (`v*` tags only, your approval required) environments.
+4. Add a `RELEASE_PLEASE_TOKEN` secret (fine-grained PAT with Contents, Issues and Pull requests write access). Without it, release PRs don't trigger CI and can't pass the required checks, and releases don't trigger the production deploy.
 5. Install the [Renovate app](https://github.com/apps/renovate) on the repo (Renovate Only, Scan and Alert).
 6. Update `LICENSE`, this README and `deploy/config/app.yaml`.
 

@@ -15,6 +15,17 @@ docker run --rm -p 8080:8080 --env-file .env app
 just up
 ```
 
+## Pipeline
+
+`.github/workflows/deploy.yml` builds the image **once** and promotes it:
+
+| Trigger | What happens | Environment |
+|---------|--------------|-------------|
+| Merge to `main` | Build, push `ghcr.io/<owner>/<repo>:sha-<commit>`, deploy | `staging` |
+| GitHub Release `vX.Y.Z` published (release-please) | Retag that commit's image as `vX.Y.Z`, wait for your approval, deploy | `production` |
+
+Production runs the exact bytes staging ran; nothing is rebuilt. Both deploy steps are placeholders: replace the `echo` with your platform's command, and put per-environment secrets in **Settings → Environments**. To roll back, re-run the production job of an older release.
+
 ## Config precedence
 
 1. Environment variables (secrets, per-environment overrides)
